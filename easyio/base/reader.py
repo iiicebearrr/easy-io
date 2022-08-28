@@ -4,7 +4,6 @@ from pathlib import Path
 class EasyReaderBase:
 
     def __init__(self, file_path: str, *args, **kwargs):
-
         if not self.is_file_exists(file_path):
             raise IOError(f"No such file: {file_path}")
 

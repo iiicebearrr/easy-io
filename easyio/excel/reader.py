@@ -1,8 +1,10 @@
+from typing import Any
+
 from openpyxl import load_workbook
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
+
 from easyio.base import EasyReaderBase, string_symbol_split
-from typing import Any
 
 
 class SheetContent:
@@ -225,7 +227,7 @@ class ExcelReader(EasyReaderBase):
                     self.iter_sheet_row(
                         self.get_sheet_by_name(sh),
                         values_only=values_only,
-                        cols=sheet_cols.get(sh, None)
+                        cols=sheet_cols.get(sh, None) if sheet_cols is not None else None
                     )
                 ),
                 as_dict=as_dict
