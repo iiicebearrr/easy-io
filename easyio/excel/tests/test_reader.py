@@ -4,14 +4,23 @@ from easyio.excel import ExcelReader
 
 
 class TestExcelReader(TestCase):
-    def test_read(self):
+    def test_read_all(self):
         reader = ExcelReader(file_path='test.xlsx')
-        sheet_cols = {
-            "Sheet1": "1:5",
-            "Sheet2": "Book, Price"
-        }
-        for sheet in reader.read(sheet_cols=None):
-            sheet.print_sheet()
-            # print(f'sheet: {sheet.sheet_name}')
-            # for row in sheet.sheet_rows:
-            #     print(f'row: {row}')
+        for sheet, rows_g in reader.read_sheets(values_only=True):
+            print(f'sheet: {sheet}')
+            for row in rows_g:
+                print(row)
+
+    def test_read_as_dict(self):
+        reader = ExcelReader(file_path='test.xlsx')
+        test_headers = [
+            None,
+            ['id', '', 'Age'],
+            {
+                'id': 'ID',
+                'Name': 'NAME'
+            }
+        ]
+        for header in test_headers:
+            for row in reader.read_sheet_as_dict(header=header):
+                print(row)
