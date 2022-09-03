@@ -10,6 +10,19 @@ T_XLSX_READ_ROW = tuple[Any] | dict[str, Any]
 
 
 class ExcelReader(EasyReaderBase):
+    __slots__ = (
+        'read_only',
+        'data_only',
+        'keep_vba',
+        'keep_links'
+    )
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.read_only:
+            self.close()
 
     def __init__(self,
                  file_path: str,
@@ -65,10 +78,15 @@ class ExcelReader(EasyReaderBase):
         self._sheets = None
         self._sheet_names = None
         self.column_config = column_config
+        self.read_only = read_only
 
     @property
     def wb(self) -> Workbook:
         return self._wb
+
+    def close(self):
+        if self.read_only:
+            self.wb.close()
 
     @property
     def sheets(self) -> list[Worksheet]:
@@ -111,20 +129,22 @@ class ExcelReader(EasyReaderBase):
             header_row = None
             for col in cols:
                 if ':' in col:
-                    # like 1:3, means columns from 1 to 3
+                    # like 1:3, means columns from 1 to 2
                     for col_num in self._get_col_range(col):
                         col_index_set.add(col_num)
 
                 elif col.isnumeric():
-                    col_index_set.add(int(col))
+                    col_index_set.add(int(col) - 1)
                 else:
                     # Try to get header(row 1), and get the index of column according to header.
                     if header_row is None:
                         header_row: tuple | None = list(sheet.iter_rows(min_row=1,
                                                                         max_row=1,
                                                                         values_only=values_only))[0]
+
                     try:
                         col_index = header_row.index(col)
+
                     except ValueError:
                         raise ValueError(f"Unknown column {col}")
                     col_index_set.add(col_index)
@@ -178,7 +198,7 @@ class ExcelReader(EasyReaderBase):
 
     def read_sheet(self, sheet: str = None,
                    values_only: bool = True,
-                   cols: list[str] = None,
+                   cols: list[str] | str = None,
                    min_row: int = None,
                    max_row: int = None) -> T_XLSX_READ_ROW:
         """read rows from some sheet, if sheet is not specified, return the first sheet rows"""
@@ -251,4 +271,5 @@ class ExcelReader(EasyReaderBase):
             raise TypeError(f"Header should be type 'None', "
                             f"or type 'list[str]', "
                             f"or type 'dict[str, Any]', but got {type(header)}")
+
 
